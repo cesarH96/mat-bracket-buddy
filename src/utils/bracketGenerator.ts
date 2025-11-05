@@ -47,6 +47,12 @@ function generateMatches(competitors: Competitor[]): Match[] {
       round: currentRound,
       position: position++,
     };
+    
+    // Auto-advance competitor if facing Bye
+    if (match.competitor1 && !match.competitor2) {
+      match.winner = match.competitor1;
+    }
+    
     matches.push(match);
   }
 
@@ -66,6 +72,23 @@ function generateMatches(competitors: Competitor[]): Match[] {
     
     previousRoundMatches = matchesInRound;
   }
+
+  // Auto-advance winners from Bye matches to next round
+  const firstRoundMatches = matches.filter(m => m.round === 1);
+  firstRoundMatches.forEach((match, index) => {
+    if (match.winner) {
+      const nextRoundMatchIndex = Math.floor(index / 2);
+      const nextRoundMatch = matches.find(m => m.round === 2 && m.position === nextRoundMatchIndex);
+      
+      if (nextRoundMatch) {
+        if (index % 2 === 0) {
+          nextRoundMatch.competitor1 = match.winner;
+        } else {
+          nextRoundMatch.competitor2 = match.winner;
+        }
+      }
+    }
+  });
 
   return matches;
 }

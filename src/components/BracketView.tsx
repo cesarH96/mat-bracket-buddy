@@ -85,7 +85,7 @@ export const BracketView = ({ brackets, onSelectWinner }: BracketViewProps) => {
                                     <span className="font-medium text-sm">
                                       {match.competitor1.name}
                                     </span>
-                                    {!match.winner && match.competitor2 && (
+                                    {!match.winner && match.competitor1 && match.competitor2 && (
                                       <Button
                                         size="sm"
                                         variant="ghost"
@@ -120,7 +120,7 @@ export const BracketView = ({ brackets, onSelectWinner }: BracketViewProps) => {
                                     <span className="font-medium text-sm">
                                       {match.competitor2.name}
                                     </span>
-                                    {!match.winner && (
+                                    {!match.winner && match.competitor2 && (
                                       <Button
                                         size="sm"
                                         variant="ghost"
@@ -138,7 +138,7 @@ export const BracketView = ({ brackets, onSelectWinner }: BracketViewProps) => {
                                   </div>
                                 ) : (
                                   <span className="text-muted-foreground text-sm">
-                                    {match.competitor1 ? "Bye" : "TBD"}
+                                    {match.competitor1 ? "Bye (Avance automático)" : "TBD"}
                                   </span>
                                 )}
                               </div>
