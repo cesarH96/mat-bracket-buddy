@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Competitor, Bracket } from "@/types/tournament";
+import { useState, useEffect } from "react";
+import { Competitor, Bracket, Belt } from "@/types/tournament";
 import { CompetitorForm } from "@/components/CompetitorForm";
 import { CompetitorList } from "@/components/CompetitorList";
 import { BracketView } from "@/components/BracketView";
@@ -7,16 +7,107 @@ import { generateBrackets } from "@/utils/bracketGenerator";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
   const [brackets, setBrackets] = useState<Bracket[]>([]);
 
+  // Load competitors from database on mount
+  useEffect(() => {
+    loadCompetitors();
+    loadBrackets();
+  }, []);
+
+  const loadCompetitors = async () => {
+    const { data, error } = await supabase
+      .from('competitors')
+      .select('*')
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error loading competitors:', error);
+      return;
+    }
+
+    if (data) {
+      setCompetitors(data as Competitor[]);
+    }
+  };
+
+  const loadBrackets = async () => {
+    const { data: bracketsData, error: bracketsError } = await supabase
+      .from('brackets')
+      .select('*')
+      .order('created_at', { ascending: true });
+
+    if (bracketsError) {
+      console.error('Error loading brackets:', bracketsError);
+      return;
+    }
+
+    if (!bracketsData || bracketsData.length === 0) return;
+
+    // Load matches for each bracket
+    const loadedBrackets: Bracket[] = [];
+
+    for (const bracket of bracketsData) {
+      const { data: matchesData, error: matchesError } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('bracket_id', bracket.id)
+        .order('round', { ascending: true });
+
+      if (matchesError) {
+        console.error('Error loading matches:', matchesError);
+        continue;
+      }
+
+      // Get all competitor IDs from matches
+      const competitorIds = new Set<string>();
+      matchesData?.forEach((match) => {
+        if (match.competitor1_id) competitorIds.add(match.competitor1_id);
+        if (match.competitor2_id) competitorIds.add(match.competitor2_id);
+        if (match.winner_id) competitorIds.add(match.winner_id);
+      });
+
+      // Load competitors for this bracket
+      const { data: competitorsData } = await supabase
+        .from('competitors')
+        .select('*')
+        .in('id', Array.from(competitorIds));
+
+      const competitorsMap = new Map(
+        competitorsData?.map((c) => [c.id, c as Competitor])
+      );
+
+      const matches = matchesData?.map((match) => ({
+        id: match.id,
+        round: match.round,
+        position: match.match_number,
+        competitor1: match.competitor1_id ? competitorsMap.get(match.competitor1_id) : undefined,
+        competitor2: match.competitor2_id ? competitorsMap.get(match.competitor2_id) : undefined,
+        winner: match.winner_id ? competitorsMap.get(match.winner_id) : undefined,
+      })) || [];
+
+      loadedBrackets.push({
+        id: bracket.id,
+        ageGroup: bracket.age_group,
+        weightGroup: bracket.weight_group,
+        belt: bracket.belt as Belt,
+        competitors: [],
+        matches,
+      });
+    }
+
+    setBrackets(loadedBrackets);
+  };
+
   const handleAddCompetitor = (competitor: Competitor) => {
     setCompetitors((prev) => [...prev, competitor]);
   };
 
-  const handleGenerateBrackets = () => {
+  const handleGenerateBrackets = async () => {
     if (competitors.length < 2) {
       toast.error("Se necesitan al menos 2 competidores para generar brackets");
       return;
@@ -29,11 +120,50 @@ const Index = () => {
       return;
     }
 
+    // Save brackets and matches to database
+    for (const bracket of newBrackets) {
+      const { error: bracketError } = await supabase
+        .from('brackets')
+        .insert({
+          id: bracket.id,
+          age_group: bracket.ageGroup,
+          weight_group: bracket.weightGroup,
+          belt: bracket.belt,
+        });
+
+      if (bracketError) {
+        console.error('Error saving bracket:', bracketError);
+        toast.error("Error al guardar brackets");
+        return;
+      }
+
+      // Save matches for this bracket
+      const matchesToInsert = bracket.matches.map((match) => ({
+        id: match.id,
+        bracket_id: bracket.id,
+        match_number: match.position,
+        round: match.round,
+        competitor1_id: match.competitor1?.id || null,
+        competitor2_id: match.competitor2?.id || null,
+        winner_id: match.winner?.id || null,
+      }));
+
+      const { error: matchesError } = await supabase
+        .from('matches')
+        .insert(matchesToInsert);
+
+      if (matchesError) {
+        console.error('Error saving matches:', matchesError);
+        toast.error("Error al guardar matches");
+        return;
+      }
+    }
+
     setBrackets(newBrackets);
     toast.success(`${newBrackets.length} bracket(s) generado(s) exitosamente`);
   };
 
-  const handleSelectWinner = (bracketId: string, matchId: string, winnerId: string) => {
+  const handleSelectWinner = async (bracketId: string, matchId: string, winnerId: string) => {
     setBrackets((prevBrackets) => {
       return prevBrackets.map((bracket) => {
         if (bracket.id !== bracketId) return bracket;
@@ -51,6 +181,18 @@ const Index = () => {
         // Update current match with winner
         updatedMatches[matchIndex] = { ...match, winner };
 
+        // Update winner in database
+        supabase
+          .from('matches')
+          .update({ winner_id: winner.id })
+          .eq('id', matchId)
+          .then(({ error }) => {
+            if (error) {
+              console.error('Error updating match winner:', error);
+              toast.error("Error al actualizar ganador");
+            }
+          });
+
         // Find next round match and assign winner
         const nextRound = match.round + 1;
         const nextPosition = Math.floor(match.position / 2);
@@ -67,6 +209,20 @@ const Index = () => {
             competitor1: isFirstSlot ? winner : nextMatch.competitor1,
             competitor2: !isFirstSlot ? winner : nextMatch.competitor2,
           };
+
+          // Update next match in database
+          supabase
+            .from('matches')
+            .update({
+              competitor1_id: isFirstSlot ? winner.id : nextMatch.competitor1?.id || null,
+              competitor2_id: !isFirstSlot ? winner.id : nextMatch.competitor2?.id || null,
+            })
+            .eq('id', nextMatch.id)
+            .then(({ error }) => {
+              if (error) {
+                console.error('Error updating next match:', error);
+              }
+            });
         }
 
         toast.success(`${winner.name} avanza a la siguiente ronda`);

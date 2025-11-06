@@ -14,7 +14,119 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      brackets: {
+        Row: {
+          age_group: string
+          belt: string
+          created_at: string
+          id: string
+          weight_group: string
+        }
+        Insert: {
+          age_group: string
+          belt: string
+          created_at?: string
+          id?: string
+          weight_group: string
+        }
+        Update: {
+          age_group?: string
+          belt?: string
+          created_at?: string
+          id?: string
+          weight_group?: string
+        }
+        Relationships: []
+      }
+      competitors: {
+        Row: {
+          age: number
+          belt: string
+          created_at: string
+          id: string
+          name: string
+          weight: number
+        }
+        Insert: {
+          age: number
+          belt: string
+          created_at?: string
+          id?: string
+          name: string
+          weight: number
+        }
+        Update: {
+          age?: number
+          belt?: string
+          created_at?: string
+          id?: string
+          name?: string
+          weight?: number
+        }
+        Relationships: []
+      }
+      matches: {
+        Row: {
+          bracket_id: string
+          competitor1_id: string | null
+          competitor2_id: string | null
+          created_at: string
+          id: string
+          match_number: number
+          round: number
+          winner_id: string | null
+        }
+        Insert: {
+          bracket_id: string
+          competitor1_id?: string | null
+          competitor2_id?: string | null
+          created_at?: string
+          id?: string
+          match_number: number
+          round: number
+          winner_id?: string | null
+        }
+        Update: {
+          bracket_id?: string
+          competitor1_id?: string | null
+          competitor2_id?: string | null
+          created_at?: string
+          id?: string
+          match_number?: number
+          round?: number
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_bracket_id_fkey"
+            columns: ["bracket_id"]
+            isOneToOne: false
+            referencedRelation: "brackets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_competitor1_id_fkey"
+            columns: ["competitor1_id"]
+            isOneToOne: false
+            referencedRelation: "competitors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_competitor2_id_fkey"
+            columns: ["competitor2_id"]
+            isOneToOne: false
+            referencedRelation: "competitors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "competitors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

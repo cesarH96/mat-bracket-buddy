@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Belt, Competitor } from "@/types/tournament";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CompetitorFormProps {
   onAddCompetitor: (competitor: Competitor) => void;
@@ -19,7 +20,7 @@ export const CompetitorForm = ({ onAddCompetitor }: CompetitorFormProps) => {
   const [weight, setWeight] = useState("");
   const [belt, setBelt] = useState<Belt | "">("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name || !age || !weight || !belt) {
@@ -34,6 +35,23 @@ export const CompetitorForm = ({ onAddCompetitor }: CompetitorFormProps) => {
       weight: parseFloat(weight),
       belt: belt as Belt,
     };
+
+    // Save to database
+    const { error } = await supabase
+      .from('competitors')
+      .insert({
+        id: competitor.id,
+        name: competitor.name,
+        age: competitor.age,
+        weight: competitor.weight,
+        belt: competitor.belt,
+      });
+
+    if (error) {
+      toast.error("Error al guardar competidor");
+      console.error(error);
+      return;
+    }
 
     onAddCompetitor(competitor);
     toast.success(`${name} registrado exitosamente`);
