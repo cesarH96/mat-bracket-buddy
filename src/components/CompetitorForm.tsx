@@ -19,6 +19,7 @@ export const CompetitorForm = ({ onAddCompetitor }: CompetitorFormProps) => {
   const [age, setAge] = useState("");
   const [weight, setWeight] = useState("");
   const [belt, setBelt] = useState<Belt | "">("");
+  const [academia, setAcademia] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +35,7 @@ export const CompetitorForm = ({ onAddCompetitor }: CompetitorFormProps) => {
       age: parseInt(age),
       weight: parseFloat(weight),
       belt: belt as Belt,
+      academia: academia || undefined,
     };
 
     // Save to database
@@ -45,6 +47,7 @@ export const CompetitorForm = ({ onAddCompetitor }: CompetitorFormProps) => {
         age: competitor.age,
         weight: competitor.weight,
         belt: competitor.belt,
+        academia: competitor.academia,
       });
 
     if (error) {
@@ -61,6 +64,7 @@ export const CompetitorForm = ({ onAddCompetitor }: CompetitorFormProps) => {
     setAge("");
     setWeight("");
     setBelt("");
+    setAcademia("");
   };
 
   return (
@@ -124,6 +128,17 @@ export const CompetitorForm = ({ onAddCompetitor }: CompetitorFormProps) => {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="academia">Academia (Opcional)</Label>
+            <Input
+              id="academia"
+              type="text"
+              value={academia}
+              onChange={(e) => setAcademia(e.target.value)}
+              placeholder="Nombre de la academia"
+            />
           </div>
 
           <Button type="submit" className="w-full">

@@ -40,6 +40,7 @@ export type Database = {
       }
       competitors: {
         Row: {
+          academia: string | null
           age: number
           belt: string
           created_at: string
@@ -48,6 +49,7 @@ export type Database = {
           weight: number
         }
         Insert: {
+          academia?: string | null
           age: number
           belt: string
           created_at?: string
@@ -56,6 +58,7 @@ export type Database = {
           weight: number
         }
         Update: {
+          academia?: string | null
           age?: number
           belt?: string
           created_at?: string

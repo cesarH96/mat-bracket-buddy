@@ -79,32 +79,38 @@ export const BracketView = ({ brackets, onSelectWinner }: BracketViewProps) => {
                                     ? "bg-primary/10 border-primary"
                                     : "hover:bg-accent/5"
                                 }`}
-                              >
-                                {match.competitor1 ? (
-                                  <div className="flex items-center justify-between">
-                                    <span className="font-medium text-sm">
-                                      {match.competitor1.name}
-                                    </span>
-                                    {!match.winner && match.competitor1 && match.competitor2 && (
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() =>
-                                          onSelectWinner(
-                                            bracket.id,
-                                            match.id,
-                                            match.competitor1!.id
-                                          )
-                                        }
-                                      >
-                                        ✓
-                                      </Button>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <span className="text-muted-foreground text-sm">TBD</span>
-                                )}
-                              </div>
+                               >
+                                 {match.competitor1 ? (
+                                   <>
+                                     <div className="flex items-center justify-between">
+                                       <div>
+                                         <p className="font-medium text-sm">{match.competitor1.name}</p>
+                                         <p className="text-xs text-muted-foreground">
+                                           {match.competitor1.age} años • {match.competitor1.weight} kg
+                                           {match.competitor1.academia && ` • ${match.competitor1.academia}`}
+                                         </p>
+                                       </div>
+                                       {!match.winner && match.competitor1 && match.competitor2 && (
+                                         <Button
+                                           size="sm"
+                                           variant="ghost"
+                                           onClick={() =>
+                                             onSelectWinner(
+                                               bracket.id,
+                                               match.id,
+                                               match.competitor1!.id
+                                             )
+                                           }
+                                         >
+                                           ✓
+                                         </Button>
+                                       )}
+                                     </div>
+                                   </>
+                                 ) : (
+                                   <span className="text-muted-foreground text-sm">TBD</span>
+                                 )}
+                               </div>
                               
                               <div className="text-center text-xs text-muted-foreground">vs</div>
                               
@@ -114,34 +120,40 @@ export const BracketView = ({ brackets, onSelectWinner }: BracketViewProps) => {
                                     ? "bg-primary/10 border-primary"
                                     : "hover:bg-accent/5"
                                 }`}
-                              >
-                                {match.competitor2 ? (
-                                  <div className="flex items-center justify-between">
-                                    <span className="font-medium text-sm">
-                                      {match.competitor2.name}
-                                    </span>
-                                    {!match.winner && match.competitor2 && (
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() =>
-                                          onSelectWinner(
-                                            bracket.id,
-                                            match.id,
-                                            match.competitor2!.id
-                                          )
-                                        }
-                                      >
-                                        ✓
-                                      </Button>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <span className="text-muted-foreground text-sm">
-                                    {match.competitor1 ? "Bye (Avance automático)" : "TBD"}
-                                  </span>
-                                )}
-                              </div>
+                               >
+                                 {match.competitor2 ? (
+                                   <>
+                                     <div className="flex items-center justify-between">
+                                       <div>
+                                         <p className="font-medium text-sm">{match.competitor2.name}</p>
+                                         <p className="text-xs text-muted-foreground">
+                                           {match.competitor2.age} años • {match.competitor2.weight} kg
+                                           {match.competitor2.academia && ` • ${match.competitor2.academia}`}
+                                         </p>
+                                       </div>
+                                       {!match.winner && match.competitor2 && (
+                                         <Button
+                                           size="sm"
+                                           variant="ghost"
+                                           onClick={() =>
+                                             onSelectWinner(
+                                               bracket.id,
+                                               match.id,
+                                               match.competitor2!.id
+                                             )
+                                           }
+                                         >
+                                           ✓
+                                         </Button>
+                                       )}
+                                     </div>
+                                   </>
+                                 ) : (
+                                   <span className="text-muted-foreground text-sm">
+                                     {match.competitor1 ? "Bye (Avance automático)" : "TBD"}
+                                   </span>
+                                 )}
+                               </div>
                             </div>
                           ))}
                         </div>

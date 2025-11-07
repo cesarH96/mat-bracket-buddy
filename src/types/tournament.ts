@@ -6,6 +6,7 @@ export interface Competitor {
   age: number;
   weight: number;
   belt: Belt;
+  academia?: string;
 }
 
 export interface Match {
