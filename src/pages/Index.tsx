@@ -348,7 +348,15 @@ const Index = () => {
             <TabsContent value="competidores" className="mt-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <CompetitorList 
-                  competitors={competitors} 
+                  competitors={competitors.filter(c => {
+                    const isInBracket = brackets.some(bracket => 
+                      bracket.competitors.some(bc => bc.id === c.id) ||
+                      bracket.matches.some(match => 
+                        match.competitor1?.id === c.id || match.competitor2?.id === c.id
+                      )
+                    );
+                    return !isInBracket;
+                  })} 
                   onSelectCompetitor={handleSelectCompetitor}
                 />
                 <BracketCreator
